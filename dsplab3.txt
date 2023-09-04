@@ -97,6 +97,72 @@ fprintf('The fundamental frequency of the whistling is approximately %.2f Hz.\n'
 
 
 
+% Step 1: Record and store the reference audio (3-second snippet of whistling)
+% Assuming you have recorded the reference audio and saved it as 'reference_audio.wav'
+
+
+
+
+
+fs = 44100;  % Sample rate (you can adjust this)
+duration = 3;  % Duration of the recording in seconds
+recorder = audiorecorder(fs, 16, 1);  % 16-bit, mono
+disp('Start whistling...');
+record(recorder, duration);
+pause(duration);  % Wait for the recording to finish
+disp('Recording finished.');
+whistle_audio= getaudiodata(recorder);
+
+% Load the reference audio
+[ref_audio, ref_Fs] = audioread('whistle_audio');
+
+% Step 1: Record and store the reference audio (3-second snippet of whistling)
+% Assuming you have recorded the reference audio and saved it as 'reference_audio.wav'
+
+% Load the reference audio
+
+
+% Calculate the reference fundamental frequency
+ref_fft = fft(ref_audio);
+N = length(ref_audio);
+ref_f = ref_Fs * (0:(N/2)) / N;
+[~, ref_idx] = max(abs(ref_fft(1:N/2+1)));
+ref_fundamental = ref_f(ref_idx);
+
+passStatus = checkAccess('piano2.wav', ref_fundamental);
+fprintf('Test Case 1: %s\n', passStatus);
+
+% Test case 2: Fail (access denied)
+failStatus = checkAccess('violin2.wav', ref_fundamental);
+fprintf('Test Case 2: %s\n', failStatus);
+
+
+% Step 2 and 3: Create a function to check access
+function accessStatus = checkAccess(audioFileName, ref_fundamental)
+    % Load the recorded audio clip
+    [clip_audio, clip_Fs] = audioread(audioFileName);
+    
+    % Calculate the fundamental frequency of the recorded clip
+    clip_fft = fft(clip_audio);
+    N = length(clip_audio);
+    clip_f = clip_Fs * (0:(N/2)) / N;
+    [~, clip_idx] = max(abs(clip_fft(1:N/2+1)));
+    clip_fundamental = clip_f(clip_idx);
+    
+    % Compare the fundamental frequencies with a 5% error margin
+    errorMargin = 0.05; % 5% error
+    if abs(clip_fundamental - ref_fundamental) / ref_fundamental <= errorMargin
+        accessStatus = 'ACCESS GRANTED';
+    else
+        accessStatus = 'ACCESS DENIED';
+    end
+end
+
+% Step 4: Provide test cases (pass and fail)
+% Record test audio clips and store them as 'test_pass.wav' and 'test_fail.wav'
+
+% Test case 1: Pass (access granted)
+
 
 
 
