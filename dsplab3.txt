@@ -1,0 +1,145 @@
+QUESTION 1
+
+
+alpha=1+mod(259,3)
+% Define the file names for the audio recordings
+fileNames = {['piano' num2str(alpha) '.wav'], 'trumpet2.wav', 'violin2.wav', 'flute2.wav'};
+
+% Create a table to store the results
+resultsTable = table('Size', [4, 2], 'VariableTypes', {'string', 'double'}, ...
+                     'VariableNames', {'Instrument', 'FundamentalFrequency_Hz'});
+
+% Loop through each instrument
+for i = 1:length(fileNames)
+    % Read the audio file
+    [audioData, sampleRate] = audioread(fileNames{i});
+    
+    % Perform FFT
+    fftSize = 2^nextpow2(length(audioData));  % Choose a power of 2 for efficiency
+    fftResult = fft(audioData, fftSize);
+    
+    % Calculate the magnitude spectrum in dB scale
+    magnitude = abs(fftResult);
+    magnitudedB = 20*log10(magnitude);
+    
+    % Find the frequency corresponding to the peak magnitude
+    [~, maxIndex] = max(magnitudedB);
+    fundamentalFrequency = (maxIndex - 1) * sampleRate / fftSize;
+    
+    % Store the results in the table
+    resultsTable.Instrument{i} = fileNames{i};
+    resultsTable.FundamentalFrequency_Hz(i) = fundamentalFrequency;
+    
+    % Plot the magnitude spectrum
+    figure;
+    f = (0:fftSize-1) * sampleRate / fftSize;
+    plot(f, magnitudedB);
+    title(sprintf('Magnitude Spectrum - %s', fileNames{i}));
+    xlabel('Frequency (Hz)');
+    ylabel('Magnitude (dB)');
+    grid on;
+end
+
+% Display the results table
+disp(resultsTable);
+
+
+% Calculate β
+beta = abs(piano_fundamental - flute_fundamental);
+
+fprintf('Fundamental Frequency of Piano: %.2f Hz\n', piano_fundamental);
+fprintf('Fundamental Frequency of Flute: %.2f Hz\n', flute_fundamental);
+fprintf('β (Difference): %.2f Hz\n', beta);
+
+
+
+
+QUESTION 2
+
+
+
+fs = 44100;  % Sample rate (you can adjust this)
+duration = 3;  % Duration of the recording in seconds
+recorder = audiorecorder(fs, 16, 1);  % 16-bit, mono
+disp('Start whistling...');
+record(recorder, duration);
+pause(duration);  % Wait for the recording to finish
+disp('Recording finished.');
+whistle_audio = getaudiodata(recorder);
+% Calculate the FFT for the recorded audio
+% Calculate the FFT for the recorded audio
+fft_result = fft(whistle_audio);
+
+% Calculate the magnitude spectrum
+magnitude_spectrum = abs(fft_result);
+
+% Calculate the corresponding frequency values
+num_samples = length(whistle_audio);
+frequency_values = (0:num_samples-1) * (fs / num_samples);
+
+% Find the index of the largest peak (fundamental harmonic)
+[~, max_index] = max(magnitude_spectrum);
+
+% Get the corresponding frequency value
+fundamental_frequency = frequency_values(max_index);
+
+% Plot the magnitude spectrum
+figure;
+plot(frequency_values, magnitude_spectrum);
+title('Magnitude Spectrum');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
+grid on;
+
+% Display the fundamental frequency
+fprintf('The fundamental frequency of the whistling is approximately %.2f Hz.\n', fundamental_frequency);
+
+
+
+
+
+
+
+
+QUESTION 3
+
+
+
+
+
+[y,Fs] = audioread('Opera.wav'); 
+sound(y,Fs)
+Y = fft(y); 
+f = Fs*(0:length(y)-1)/length(y); 
+plot(f,db(abs(Y)));
+xlabel('Frequency (Hz)');
+ylabel('Magnitude(dB)');
+N = length(y)/10; 
+M = floor(length(y)/N); 
+for i = 1:M
+    y_segment = y((i-1)*N+1:i*N);
+    Y_segment = fft(y_segment); 
+    f_segment = Fs*(0:N-1)/N; 
+    subplot(M,1,i)
+    plot(f_segment,db(abs(Y_segment)));
+end
+
+
+FOR THE SPECTRUM
+[x, fs] = audioread('Opera.wav');
+
+windowSize = 1024;  % Size of the analysis window
+overlap = 512;     % Overlap between consecutive windows
+nfft = 1024;        % Number of FFT points
+[S, F, T] = spectrogram(x, windowSize, overlap, nfft, fs);
+
+S_dB = 10 * log10(abs(S));
+
+figure;
+imagesc(T, F, S_dB);  % Display the spectrogram
+axis xy;              % Invert the y-axis to have lower frequencies at the bottom
+colormap jet;        % Set the colormap (you can choose different colormaps)
+colorbar;            % Add a colorbar to the plot
+title('Spectrogram of Opera.wav');
+xlabel('Time (s)');
+ylabel('Frequency (Hz)');
